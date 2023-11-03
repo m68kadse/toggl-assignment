@@ -8,7 +8,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/togglhire/backend-homework/graph/model"
+	"github.com/m68kadse/toggl-assignment/graph/model"
 )
 
 // CreateQuestion is the resolver for the createQuestion field.
