@@ -3,10 +3,17 @@ package sqlite
 import (
 	"context"
 	"database/sql"
+	"sort"
 
 	"github.com/m68kadse/toggl-assignment/dao"
 	"github.com/m68kadse/toggl-assignment/dto"
 )
+
+func sortQuestionsByID(questions []*dto.Question) {
+	sort.Slice(questions, func(i, j int) bool {
+		return questions[i].ID < questions[j].ID
+	})
+}
 
 func (dao *SQLiteDAO) GetQuestions(ctx context.Context, params dao.PaginationParams) ([]*dto.Question, error) {
 	query := `
@@ -15,7 +22,7 @@ func (dao *SQLiteDAO) GetQuestions(ctx context.Context, params dao.PaginationPar
 			ORDER BY id
 			LIMIT ? OFFSET ?) AS q
 		LEFT JOIN "option" AS o ON o.fk_question = q.id
-		ORDER BY q.id o.id
+		ORDER BY q.id, o.id
 	`
 
 	rows, err := dao.db.QueryContext(ctx, query, params.Limit, params.Offset)
@@ -64,6 +71,8 @@ func (dao *SQLiteDAO) GetQuestions(ctx context.Context, params dao.PaginationPar
 	for _, question := range questionsMap {
 		questions = append(questions, question)
 	}
+
+	sortQuestionsByID(questions)
 
 	return questions, nil
 }

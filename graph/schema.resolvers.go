@@ -56,6 +56,8 @@ func (r *mutationResolver) DeleteQuestion(ctx context.Context, id string) (*stri
 
 // Questions is the resolver for the questions field.
 func (r *queryResolver) Questions(ctx context.Context, offset *int) ([]*model.Question, error) {
+	const PAGESIZE int = 30
+
 	params := dao.PaginationParams{
 		Limit: PAGESIZE,
 	}

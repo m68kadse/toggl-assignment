@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/99designs/gqlgen/graphql/handler"
-	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/m68kadse/toggl-assignment/dao/sqlite"
 	"github.com/m68kadse/toggl-assignment/graph"
 )
@@ -34,9 +33,6 @@ func main() {
 	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{
 		QuestionDAO: dao}}))
 
-	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	http.Handle("/query", srv)
-
-	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
+	http.Handle("/", srv)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
