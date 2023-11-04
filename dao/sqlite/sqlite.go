@@ -11,11 +11,10 @@ import (
 var initSQL string
 
 type SQLiteDAO struct {
-	db            *sql.DB
-	preparedStmts map[string]*sql.Stmt
+	db *sql.DB
 }
 
-func NewDB(filepath string) (*SQLiteDAO, error) {
+func NewDAO(filepath string) (*SQLiteDAO, error) {
 	// Open the SQLite database
 	db, err := sql.Open("sqlite3", filepath)
 	if err != nil {
@@ -30,8 +29,7 @@ func NewDB(filepath string) (*SQLiteDAO, error) {
 
 	// Create the SQLiteDAO object
 	SQLiteDAO := &SQLiteDAO{
-		db:            db,
-		preparedStmts: make(map[string]*sql.Stmt),
+		db: db,
 	}
 
 	// Run the SQL initialization script
@@ -40,30 +38,6 @@ func NewDB(filepath string) (*SQLiteDAO, error) {
 	}
 
 	return SQLiteDAO, nil
-}
-
-func (s *SQLiteDAO) PrepareStmt(query string) (*sql.Stmt, error) {
-	// Check if the statement is already prepared
-	if stmt, ok := s.preparedStmts[query]; ok {
-		return stmt, nil
-	}
-
-	stmt, err := s.db.Prepare(query)
-	if err != nil {
-		return nil, err
-	}
-
-	s.preparedStmts[query] = stmt
-
-	return stmt, nil
-}
-
-func (s *SQLiteDAO) Close() error {
-	for _, stmt := range s.preparedStmts {
-		stmt.Close()
-	}
-
-	return s.db.Close()
 }
 
 func (s *SQLiteDAO) init() error {

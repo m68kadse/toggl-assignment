@@ -73,7 +73,7 @@ type ComplexityRoot struct {
 type MutationResolver interface {
 	CreateQuestion(ctx context.Context, input model.QuestionInput) (*model.Question, error)
 	UpdateQuestion(ctx context.Context, id string, input model.QuestionInput) (*model.Question, error)
-	DeleteQuestion(ctx context.Context, id string) (*model.Question, error)
+	DeleteQuestion(ctx context.Context, id string) (*string, error)
 }
 type QueryResolver interface {
 	Questions(ctx context.Context, offset *int) ([]*model.Question, error)
@@ -600,9 +600,9 @@ func (ec *executionContext) _Mutation_deleteQuestion(ctx context.Context, field 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.Question)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalOQuestion2ᚖgithubᚗcomᚋm68kadseᚋtogglᚑassignmentᚋgraphᚋmodelᚐQuestion(ctx, field.Selections, res)
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_deleteQuestion(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -612,15 +612,7 @@ func (ec *executionContext) fieldContext_Mutation_deleteQuestion(ctx context.Con
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Question_id(ctx, field)
-			case "body":
-				return ec.fieldContext_Question_body(ctx, field)
-			case "options":
-				return ec.fieldContext_Question_options(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Question", field.Name)
+			return nil, errors.New("field of type ID does not have child fields")
 		},
 	}
 	defer func() {
@@ -3911,6 +3903,22 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 		return graphql.Null
 	}
 	res := graphql.MarshalBoolean(*v)
+	return res
+}
+
+func (ec *executionContext) unmarshalOID2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalID(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := graphql.MarshalID(*v)
 	return res
 }
 

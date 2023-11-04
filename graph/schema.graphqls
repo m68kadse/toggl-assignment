@@ -31,5 +31,5 @@ type Query {
 type Mutation {
   createQuestion(input: QuestionInput!): Question
   updateQuestion(id: ID!, input: QuestionInput!): Question
-  deleteQuestion(id: ID!): Question
+  deleteQuestion(id: ID!): ID
 }

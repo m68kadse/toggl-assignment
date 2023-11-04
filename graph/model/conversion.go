@@ -26,5 +26,22 @@ func QuestionFromDTO(q *dto.Question) *Question {
 	for i, o := range q.Options {
 		mq.Options[i] = OptionFromDTO(o)
 	}
+
 	return mq
+}
+
+func DTOFromQuestionInput(input *QuestionInput) *dto.Question {
+	questionDTO := &dto.Question{
+		Body:    input.Body,
+		Options: make([]*dto.Option, len(input.Options)),
+	}
+
+	for i, optInput := range input.Options {
+		questionDTO.Options[i] = &dto.Option{
+			Body:    optInput.Body,
+			Correct: optInput.Correct,
+		}
+	}
+
+	return questionDTO
 }
