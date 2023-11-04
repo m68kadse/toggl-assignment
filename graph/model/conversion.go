@@ -13,7 +13,6 @@ import (
 
 func OptionFromDTO(o *dto.Option) *Option {
 	return &Option{
-		ID:      strconv.FormatInt(o.ID, 10),
 		Body:    strings.Clone(o.Body),
 		Correct: o.Correct,
 	}
@@ -25,7 +24,7 @@ func QuestionFromDTO(q *dto.Question) *Question {
 	mq.Body = strings.Clone(q.Body)
 	mq.Options = make([]*Option, len(q.Options))
 	for i, o := range q.Options {
-		mq.Options[i] = OptionFromDTO(&o)
+		mq.Options[i] = OptionFromDTO(o)
 	}
 	return mq
 }

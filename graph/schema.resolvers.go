@@ -26,23 +26,8 @@ func (r *mutationResolver) DeleteQuestion(ctx context.Context, id string) (*mode
 	panic(fmt.Errorf("not implemented: DeleteQuestion - deleteQuestion"))
 }
 
-// CreateOption is the resolver for the createOption field.
-func (r *mutationResolver) CreateOption(ctx context.Context, input model.OptionInput) (*model.Option, error) {
-	panic(fmt.Errorf("not implemented: CreateOption - createOption"))
-}
-
-// UpdateOption is the resolver for the updateOption field.
-func (r *mutationResolver) UpdateOption(ctx context.Context, id string, input model.OptionInput) (*model.Option, error) {
-	panic(fmt.Errorf("not implemented: UpdateOption - updateOption"))
-}
-
-// DeleteOption is the resolver for the deleteOption field.
-func (r *mutationResolver) DeleteOption(ctx context.Context, id string) (*model.Option, error) {
-	panic(fmt.Errorf("not implemented: DeleteOption - deleteOption"))
-}
-
 // Questions is the resolver for the questions field.
-func (r *queryResolver) Questions(ctx context.Context) ([]*model.Question, error) {
+func (r *queryResolver) Questions(ctx context.Context, offset *int) ([]*model.Question, error) {
 	panic(fmt.Errorf("not implemented: Questions - questions"))
 }
 
@@ -59,3 +44,19 @@ func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//     it when you're done.
+//   - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *mutationResolver) CreateOption(ctx context.Context, input model.OptionInput) (*model.Option, error) {
+	panic(fmt.Errorf("not implemented: CreateOption - createOption"))
+}
+func (r *mutationResolver) UpdateOption(ctx context.Context, id string, input model.OptionInput) (*model.Option, error) {
+	panic(fmt.Errorf("not implemented: UpdateOption - updateOption"))
+}
+func (r *mutationResolver) DeleteOption(ctx context.Context, id string) (*model.Option, error) {
+	panic(fmt.Errorf("not implemented: DeleteOption - deleteOption"))
+}

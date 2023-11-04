@@ -48,23 +48,19 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Mutation struct {
-		CreateOption   func(childComplexity int, input model.OptionInput) int
 		CreateQuestion func(childComplexity int, input model.QuestionInput) int
-		DeleteOption   func(childComplexity int, id string) int
 		DeleteQuestion func(childComplexity int, id string) int
-		UpdateOption   func(childComplexity int, id string, input model.OptionInput) int
 		UpdateQuestion func(childComplexity int, id string, input model.QuestionInput) int
 	}
 
 	Option struct {
 		Body    func(childComplexity int) int
 		Correct func(childComplexity int) int
-		ID      func(childComplexity int) int
 	}
 
 	Query struct {
 		Question  func(childComplexity int, id string) int
-		Questions func(childComplexity int) int
+		Questions func(childComplexity int, offset *int) int
 	}
 
 	Question struct {
@@ -78,12 +74,9 @@ type MutationResolver interface {
 	CreateQuestion(ctx context.Context, input model.QuestionInput) (*model.Question, error)
 	UpdateQuestion(ctx context.Context, id string, input model.QuestionInput) (*model.Question, error)
 	DeleteQuestion(ctx context.Context, id string) (*model.Question, error)
-	CreateOption(ctx context.Context, input model.OptionInput) (*model.Option, error)
-	UpdateOption(ctx context.Context, id string, input model.OptionInput) (*model.Option, error)
-	DeleteOption(ctx context.Context, id string) (*model.Option, error)
 }
 type QueryResolver interface {
-	Questions(ctx context.Context) ([]*model.Question, error)
+	Questions(ctx context.Context, offset *int) ([]*model.Question, error)
 	Question(ctx context.Context, id string) (*model.Question, error)
 }
 
@@ -106,18 +99,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
-	case "Mutation.createOption":
-		if e.complexity.Mutation.CreateOption == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_createOption_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.CreateOption(childComplexity, args["input"].(model.OptionInput)), true
-
 	case "Mutation.createQuestion":
 		if e.complexity.Mutation.CreateQuestion == nil {
 			break
@@ -130,18 +111,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateQuestion(childComplexity, args["input"].(model.QuestionInput)), true
 
-	case "Mutation.deleteOption":
-		if e.complexity.Mutation.DeleteOption == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_deleteOption_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.DeleteOption(childComplexity, args["id"].(string)), true
-
 	case "Mutation.deleteQuestion":
 		if e.complexity.Mutation.DeleteQuestion == nil {
 			break
@@ -153,18 +122,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteQuestion(childComplexity, args["id"].(string)), true
-
-	case "Mutation.updateOption":
-		if e.complexity.Mutation.UpdateOption == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_updateOption_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.UpdateOption(childComplexity, args["id"].(string), args["input"].(model.OptionInput)), true
 
 	case "Mutation.updateQuestion":
 		if e.complexity.Mutation.UpdateQuestion == nil {
@@ -192,13 +149,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Option.Correct(childComplexity), true
 
-	case "Option.id":
-		if e.complexity.Option.ID == nil {
-			break
-		}
-
-		return e.complexity.Option.ID(childComplexity), true
-
 	case "Query.question":
 		if e.complexity.Query.Question == nil {
 			break
@@ -216,7 +166,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Query.Questions(childComplexity), true
+		args, err := ec.field_Query_questions_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Questions(childComplexity, args["offset"].(*int)), true
 
 	case "Question.body":
 		if e.complexity.Question.Body == nil {
@@ -365,48 +320,18 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
 // region    ***************************** args.gotpl *****************************
 
-func (ec *executionContext) field_Mutation_createOption_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 model.OptionInput
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNOptionInput2githubᚗcomᚋtogglhireᚋbackendᚑhomeworkᚋgraphᚋmodelᚐOptionInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Mutation_createQuestion_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 model.QuestionInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNQuestionInput2githubᚗcomᚋtogglhireᚋbackendᚑhomeworkᚋgraphᚋmodelᚐQuestionInput(ctx, tmp)
+		arg0, err = ec.unmarshalNQuestionInput2githubᚗcomᚋm68kadseᚋtogglᚑassignmentᚋgraphᚋmodelᚐQuestionInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
 	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_deleteOption_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
 	return args, nil
 }
 
@@ -425,30 +350,6 @@ func (ec *executionContext) field_Mutation_deleteQuestion_args(ctx context.Conte
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_updateOption_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	var arg1 model.OptionInput
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg1, err = ec.unmarshalNOptionInput2githubᚗcomᚋtogglhireᚋbackendᚑhomeworkᚋgraphᚋmodelᚐOptionInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg1
-	return args, nil
-}
-
 func (ec *executionContext) field_Mutation_updateQuestion_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -464,7 +365,7 @@ func (ec *executionContext) field_Mutation_updateQuestion_args(ctx context.Conte
 	var arg1 model.QuestionInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg1, err = ec.unmarshalNQuestionInput2githubᚗcomᚋtogglhireᚋbackendᚑhomeworkᚋgraphᚋmodelᚐQuestionInput(ctx, tmp)
+		arg1, err = ec.unmarshalNQuestionInput2githubᚗcomᚋm68kadseᚋtogglᚑassignmentᚋgraphᚋmodelᚐQuestionInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -500,6 +401,21 @@ func (ec *executionContext) field_Query_question_args(ctx context.Context, rawAr
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_questions_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["offset"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("offset"))
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["offset"] = arg0
 	return args, nil
 }
 
@@ -566,7 +482,7 @@ func (ec *executionContext) _Mutation_createQuestion(ctx context.Context, field 
 	}
 	res := resTmp.(*model.Question)
 	fc.Result = res
-	return ec.marshalOQuestion2ᚖgithubᚗcomᚋtogglhireᚋbackendᚑhomeworkᚋgraphᚋmodelᚐQuestion(ctx, field.Selections, res)
+	return ec.marshalOQuestion2ᚖgithubᚗcomᚋm68kadseᚋtogglᚑassignmentᚋgraphᚋmodelᚐQuestion(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_createQuestion(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -626,7 +542,7 @@ func (ec *executionContext) _Mutation_updateQuestion(ctx context.Context, field 
 	}
 	res := resTmp.(*model.Question)
 	fc.Result = res
-	return ec.marshalOQuestion2ᚖgithubᚗcomᚋtogglhireᚋbackendᚑhomeworkᚋgraphᚋmodelᚐQuestion(ctx, field.Selections, res)
+	return ec.marshalOQuestion2ᚖgithubᚗcomᚋm68kadseᚋtogglᚑassignmentᚋgraphᚋmodelᚐQuestion(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_updateQuestion(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -686,7 +602,7 @@ func (ec *executionContext) _Mutation_deleteQuestion(ctx context.Context, field 
 	}
 	res := resTmp.(*model.Question)
 	fc.Result = res
-	return ec.marshalOQuestion2ᚖgithubᚗcomᚋtogglhireᚋbackendᚑhomeworkᚋgraphᚋmodelᚐQuestion(ctx, field.Selections, res)
+	return ec.marshalOQuestion2ᚖgithubᚗcomᚋm68kadseᚋtogglᚑassignmentᚋgraphᚋmodelᚐQuestion(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_deleteQuestion(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -717,230 +633,6 @@ func (ec *executionContext) fieldContext_Mutation_deleteQuestion(ctx context.Con
 	if fc.Args, err = ec.field_Mutation_deleteQuestion_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_createOption(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_createOption(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateOption(rctx, fc.Args["input"].(model.OptionInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.Option)
-	fc.Result = res
-	return ec.marshalOOption2ᚖgithubᚗcomᚋtogglhireᚋbackendᚑhomeworkᚋgraphᚋmodelᚐOption(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_createOption(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Option_id(ctx, field)
-			case "body":
-				return ec.fieldContext_Option_body(ctx, field)
-			case "correct":
-				return ec.fieldContext_Option_correct(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Option", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_createOption_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_updateOption(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_updateOption(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateOption(rctx, fc.Args["id"].(string), fc.Args["input"].(model.OptionInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.Option)
-	fc.Result = res
-	return ec.marshalOOption2ᚖgithubᚗcomᚋtogglhireᚋbackendᚑhomeworkᚋgraphᚋmodelᚐOption(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_updateOption(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Option_id(ctx, field)
-			case "body":
-				return ec.fieldContext_Option_body(ctx, field)
-			case "correct":
-				return ec.fieldContext_Option_correct(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Option", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_updateOption_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_deleteOption(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_deleteOption(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteOption(rctx, fc.Args["id"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.Option)
-	fc.Result = res
-	return ec.marshalOOption2ᚖgithubᚗcomᚋtogglhireᚋbackendᚑhomeworkᚋgraphᚋmodelᚐOption(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_deleteOption(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Option_id(ctx, field)
-			case "body":
-				return ec.fieldContext_Option_body(ctx, field)
-			case "correct":
-				return ec.fieldContext_Option_correct(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Option", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_deleteOption_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Option_id(ctx context.Context, field graphql.CollectedField, obj *model.Option) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Option_id(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Option_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Option",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
 	}
 	return fc, nil
 }
@@ -1047,7 +739,7 @@ func (ec *executionContext) _Query_questions(ctx context.Context, field graphql.
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Questions(rctx)
+		return ec.resolvers.Query().Questions(rctx, fc.Args["offset"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1058,7 +750,7 @@ func (ec *executionContext) _Query_questions(ctx context.Context, field graphql.
 	}
 	res := resTmp.([]*model.Question)
 	fc.Result = res
-	return ec.marshalOQuestion2ᚕᚖgithubᚗcomᚋtogglhireᚋbackendᚑhomeworkᚋgraphᚋmodelᚐQuestion(ctx, field.Selections, res)
+	return ec.marshalOQuestion2ᚕᚖgithubᚗcomᚋm68kadseᚋtogglᚑassignmentᚋgraphᚋmodelᚐQuestion(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_questions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1078,6 +770,17 @@ func (ec *executionContext) fieldContext_Query_questions(ctx context.Context, fi
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Question", field.Name)
 		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_questions_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -1107,7 +810,7 @@ func (ec *executionContext) _Query_question(ctx context.Context, field graphql.C
 	}
 	res := resTmp.(*model.Question)
 	fc.Result = res
-	return ec.marshalOQuestion2ᚖgithubᚗcomᚋtogglhireᚋbackendᚑhomeworkᚋgraphᚋmodelᚐQuestion(ctx, field.Selections, res)
+	return ec.marshalOQuestion2ᚖgithubᚗcomᚋm68kadseᚋtogglᚑassignmentᚋgraphᚋmodelᚐQuestion(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_question(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1387,7 +1090,7 @@ func (ec *executionContext) _Question_options(ctx context.Context, field graphql
 	}
 	res := resTmp.([]*model.Option)
 	fc.Result = res
-	return ec.marshalNOption2ᚕᚖgithubᚗcomᚋtogglhireᚋbackendᚑhomeworkᚋgraphᚋmodelᚐOption(ctx, field.Selections, res)
+	return ec.marshalNOption2ᚕᚖgithubᚗcomᚋm68kadseᚋtogglᚑassignmentᚋgraphᚋmodelᚐOption(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Question_options(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1398,8 +1101,6 @@ func (ec *executionContext) fieldContext_Question_options(ctx context.Context, f
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_Option_id(ctx, field)
 			case "body":
 				return ec.fieldContext_Option_body(ctx, field)
 			case "correct":
@@ -3249,7 +2950,7 @@ func (ec *executionContext) unmarshalInputQuestionInput(ctx context.Context, obj
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("options"))
-			data, err := ec.unmarshalNOptionInput2ᚕᚖgithubᚗcomᚋtogglhireᚋbackendᚑhomeworkᚋgraphᚋmodelᚐOptionInput(ctx, v)
+			data, err := ec.unmarshalNOptionInput2ᚕᚖgithubᚗcomᚋm68kadseᚋtogglᚑassignmentᚋgraphᚋmodelᚐOptionInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3299,18 +3000,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_deleteQuestion(ctx, field)
 			})
-		case "createOption":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_createOption(ctx, field)
-			})
-		case "updateOption":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_updateOption(ctx, field)
-			})
-		case "deleteOption":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_deleteOption(ctx, field)
-			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3345,11 +3034,6 @@ func (ec *executionContext) _Option(ctx context.Context, sel ast.SelectionSet, o
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Option")
-		case "id":
-			out.Values[i] = ec._Option_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
 		case "body":
 			out.Values[i] = ec._Option_body(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -3876,7 +3560,7 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 	return res
 }
 
-func (ec *executionContext) marshalNOption2ᚕᚖgithubᚗcomᚋtogglhireᚋbackendᚑhomeworkᚋgraphᚋmodelᚐOption(ctx context.Context, sel ast.SelectionSet, v []*model.Option) graphql.Marshaler {
+func (ec *executionContext) marshalNOption2ᚕᚖgithubᚗcomᚋm68kadseᚋtogglᚑassignmentᚋgraphᚋmodelᚐOption(ctx context.Context, sel ast.SelectionSet, v []*model.Option) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -3900,7 +3584,7 @@ func (ec *executionContext) marshalNOption2ᚕᚖgithubᚗcomᚋtogglhireᚋback
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOOption2ᚖgithubᚗcomᚋtogglhireᚋbackendᚑhomeworkᚋgraphᚋmodelᚐOption(ctx, sel, v[i])
+			ret[i] = ec.marshalOOption2ᚖgithubᚗcomᚋm68kadseᚋtogglᚑassignmentᚋgraphᚋmodelᚐOption(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -3914,12 +3598,7 @@ func (ec *executionContext) marshalNOption2ᚕᚖgithubᚗcomᚋtogglhireᚋback
 	return ret
 }
 
-func (ec *executionContext) unmarshalNOptionInput2githubᚗcomᚋtogglhireᚋbackendᚑhomeworkᚋgraphᚋmodelᚐOptionInput(ctx context.Context, v interface{}) (model.OptionInput, error) {
-	res, err := ec.unmarshalInputOptionInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNOptionInput2ᚕᚖgithubᚗcomᚋtogglhireᚋbackendᚑhomeworkᚋgraphᚋmodelᚐOptionInput(ctx context.Context, v interface{}) ([]*model.OptionInput, error) {
+func (ec *executionContext) unmarshalNOptionInput2ᚕᚖgithubᚗcomᚋm68kadseᚋtogglᚑassignmentᚋgraphᚋmodelᚐOptionInput(ctx context.Context, v interface{}) ([]*model.OptionInput, error) {
 	var vSlice []interface{}
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
@@ -3928,7 +3607,7 @@ func (ec *executionContext) unmarshalNOptionInput2ᚕᚖgithubᚗcomᚋtogglhire
 	res := make([]*model.OptionInput, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalOOptionInput2ᚖgithubᚗcomᚋtogglhireᚋbackendᚑhomeworkᚋgraphᚋmodelᚐOptionInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalOOptionInput2ᚖgithubᚗcomᚋm68kadseᚋtogglᚑassignmentᚋgraphᚋmodelᚐOptionInput(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -3936,7 +3615,7 @@ func (ec *executionContext) unmarshalNOptionInput2ᚕᚖgithubᚗcomᚋtogglhire
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalNQuestionInput2githubᚗcomᚋtogglhireᚋbackendᚑhomeworkᚋgraphᚋmodelᚐQuestionInput(ctx context.Context, v interface{}) (model.QuestionInput, error) {
+func (ec *executionContext) unmarshalNQuestionInput2githubᚗcomᚋm68kadseᚋtogglᚑassignmentᚋgraphᚋmodelᚐQuestionInput(ctx context.Context, v interface{}) (model.QuestionInput, error) {
 	res, err := ec.unmarshalInputQuestionInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -4235,14 +3914,30 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return res
 }
 
-func (ec *executionContext) marshalOOption2ᚖgithubᚗcomᚋtogglhireᚋbackendᚑhomeworkᚋgraphᚋmodelᚐOption(ctx context.Context, sel ast.SelectionSet, v *model.Option) graphql.Marshaler {
+func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalInt(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.SelectionSet, v *int) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := graphql.MarshalInt(*v)
+	return res
+}
+
+func (ec *executionContext) marshalOOption2ᚖgithubᚗcomᚋm68kadseᚋtogglᚑassignmentᚋgraphᚋmodelᚐOption(ctx context.Context, sel ast.SelectionSet, v *model.Option) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._Option(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOOptionInput2ᚖgithubᚗcomᚋtogglhireᚋbackendᚑhomeworkᚋgraphᚋmodelᚐOptionInput(ctx context.Context, v interface{}) (*model.OptionInput, error) {
+func (ec *executionContext) unmarshalOOptionInput2ᚖgithubᚗcomᚋm68kadseᚋtogglᚑassignmentᚋgraphᚋmodelᚐOptionInput(ctx context.Context, v interface{}) (*model.OptionInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -4250,7 +3945,7 @@ func (ec *executionContext) unmarshalOOptionInput2ᚖgithubᚗcomᚋtogglhireᚋ
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOQuestion2ᚕᚖgithubᚗcomᚋtogglhireᚋbackendᚑhomeworkᚋgraphᚋmodelᚐQuestion(ctx context.Context, sel ast.SelectionSet, v []*model.Question) graphql.Marshaler {
+func (ec *executionContext) marshalOQuestion2ᚕᚖgithubᚗcomᚋm68kadseᚋtogglᚑassignmentᚋgraphᚋmodelᚐQuestion(ctx context.Context, sel ast.SelectionSet, v []*model.Question) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -4277,7 +3972,7 @@ func (ec *executionContext) marshalOQuestion2ᚕᚖgithubᚗcomᚋtogglhireᚋba
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOQuestion2ᚖgithubᚗcomᚋtogglhireᚋbackendᚑhomeworkᚋgraphᚋmodelᚐQuestion(ctx, sel, v[i])
+			ret[i] = ec.marshalOQuestion2ᚖgithubᚗcomᚋm68kadseᚋtogglᚑassignmentᚋgraphᚋmodelᚐQuestion(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -4291,7 +3986,7 @@ func (ec *executionContext) marshalOQuestion2ᚕᚖgithubᚗcomᚋtogglhireᚋba
 	return ret
 }
 
-func (ec *executionContext) marshalOQuestion2ᚖgithubᚗcomᚋtogglhireᚋbackendᚑhomeworkᚋgraphᚋmodelᚐQuestion(ctx context.Context, sel ast.SelectionSet, v *model.Question) graphql.Marshaler {
+func (ec *executionContext) marshalOQuestion2ᚖgithubᚗcomᚋm68kadseᚋtogglᚑassignmentᚋgraphᚋmodelᚐQuestion(ctx context.Context, sel ast.SelectionSet, v *model.Question) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

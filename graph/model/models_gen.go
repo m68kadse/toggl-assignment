@@ -3,7 +3,6 @@
 package model
 
 type Option struct {
-	ID      string `json:"id"`
 	Body    string `json:"body"`
 	Correct bool   `json:"correct"`
 }

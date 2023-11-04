@@ -9,7 +9,6 @@ type Question {
 }
 
 type Option {
-  id: ID!
   body: String!
   correct: Boolean!
 }
@@ -25,7 +24,7 @@ input OptionInput {
 }
 
 type Query {
-  questions: [Question]
+  questions( offset: Int): [Question]
   question(id: ID!): Question
 }
 
@@ -33,8 +32,4 @@ type Mutation {
   createQuestion(input: QuestionInput!): Question
   updateQuestion(id: ID!, input: QuestionInput!): Question
   deleteQuestion(id: ID!): Question
-
-  createOption(input: OptionInput!): Option
-  updateOption(id: ID!, input: OptionInput!): Option
-  deleteOption(id: ID!): Option
 }
