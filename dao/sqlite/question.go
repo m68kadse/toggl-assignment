@@ -2,6 +2,7 @@ package sqlite
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/m68kadse/toggl-assignment/dao"
 	"github.com/m68kadse/toggl-assignment/dto"
@@ -10,10 +11,11 @@ import (
 func (dao *SQLiteDAO) GetQuestions(ctx context.Context, params dao.PaginationParams) ([]*dto.Question, error) {
 	query := `
 		SELECT q.id, q.body, o.id, o.body, o.correct
-		FROM question AS q
+		FROM (SELECT * FROM question
+			ORDER BY id
+			LIMIT ? OFFSET ?) AS q
 		LEFT JOIN "option" AS o ON o.fk_question = q.id
-		ORDER BY q.id, o.id
-		LIMIT ? OFFSET ?
+		ORDER BY q.id o.id
 	`
 
 	rows, err := dao.db.QueryContext(ctx, query, params.Limit, params.Offset)
@@ -26,9 +28,9 @@ func (dao *SQLiteDAO) GetQuestions(ctx context.Context, params dao.PaginationPar
 
 	for rows.Next() {
 		var (
-			qID, oID     int64
-			qBody, oBody string
-			correct      int
+			qID, oID     sql.NullInt64
+			qBody, oBody sql.NullString
+			correct      sql.NullInt64
 		)
 
 		err := rows.Scan(&qID, &qBody, &oID, &oBody, &correct)
@@ -36,22 +38,22 @@ func (dao *SQLiteDAO) GetQuestions(ctx context.Context, params dao.PaginationPar
 			return nil, err
 		}
 
-		question, exists := questionsMap[qID]
+		question, exists := questionsMap[qID.Int64]
 		if !exists {
 			question = &dto.Question{
-				ID:      qID,
-				Body:    qBody,
+				ID:      qID.Int64,
+				Body:    qBody.String,
 				Options: make([]*dto.Option, 0),
 			}
-			questionsMap[qID] = question
+			questionsMap[qID.Int64] = question
 		}
 
-		if oID != 0 {
+		if oID.Valid {
 			// Create and append the option to the question
 			option := &dto.Option{
-				ID:      oID,
-				Body:    oBody,
-				Correct: correct == 1,
+				ID:      oID.Int64,
+				Body:    oBody.String,
+				Correct: correct.Int64 == 1,
 			}
 			question.Options = append(question.Options, option)
 		}
@@ -68,16 +70,17 @@ func (dao *SQLiteDAO) GetQuestions(ctx context.Context, params dao.PaginationPar
 
 func (dao *SQLiteDAO) GetQuestionByID(ctx context.Context, id int64) (*dto.Question, error) {
 	query := `
-	SELECT q.id, q.body, o.id, o.body, o.correct
-	FROM question AS q
-	LEFT JOIN "option" AS o ON o.fk_question = q.id
-	WHERE q.id = ?
-`
+		SELECT q.id, q.body, o.id, o.body, o.correct
+		FROM question AS q
+		LEFT JOIN option AS o ON o.fk_question = q.id
+		WHERE q.id = ?
+		ORDER BY o.id
+	`
 
 	var question *dto.Question
 	optionsMap := make(map[int64]*dto.Option)
 
-	rows, err := dao.db.QueryContext(ctx, query, id) // commit the transaction
+	rows, err := dao.db.QueryContext(ctx, query, id)
 	if err != nil {
 		return nil, err
 	}
@@ -85,9 +88,9 @@ func (dao *SQLiteDAO) GetQuestionByID(ctx context.Context, id int64) (*dto.Quest
 
 	for rows.Next() {
 		var (
-			qID, oID     int64
-			qBody, oBody string
-			correct      int
+			qID, oID     sql.NullInt64
+			qBody, oBody sql.NullString
+			correct      sql.NullInt64
 		)
 
 		err := rows.Scan(&qID, &qBody, &oID, &oBody, &correct)
@@ -97,27 +100,30 @@ func (dao *SQLiteDAO) GetQuestionByID(ctx context.Context, id int64) (*dto.Quest
 
 		if question == nil {
 			question = &dto.Question{
-				ID:      qID,
-				Body:    qBody,
+				ID:      qID.Int64,
+				Body:    qBody.String,
 				Options: make([]*dto.Option, 0),
 			}
-		} // commit the transaction
-
-		option, exists := optionsMap[oID]
-		if !exists {
-			option = &dto.Option{
-				ID:      oID,
-				Body:    oBody,
-				Correct: correct == 1,
-			}
-			optionsMap[oID] = option
 		}
 
-		question.Options = append(question.Options, option)
+		if oID.Valid {
+			// Create and append the option to the question
+			option := &dto.Option{
+				ID:      oID.Int64,
+				Body:    oBody.String,
+				Correct: correct.Int64 == 1,
+			}
+			optionsMap[oID.Int64] = option
+		}
 	}
 
 	if err := rows.Err(); err != nil {
 		return nil, err
+	}
+
+	// Convert the map of options to a slice and assign to the question
+	for _, option := range optionsMap {
+		question.Options = append(question.Options, option)
 	}
 
 	return question, nil

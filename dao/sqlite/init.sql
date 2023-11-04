@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS question(
 );
 
 CREATE TABLE IF NOT EXISTS "option"(
-    id PRIMARY KEY,
+    id INTEGER PRIMARY KEY,
     fk_question INTEGER NOT NULL,
     body TEXT NOT NULL,
     correct INTEGER NOT NULL,
