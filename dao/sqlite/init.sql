@@ -2,7 +2,7 @@
 
 
 CREATE TABLE IF NOT EXISTS question(
-    id PRIMARY KEY,
+    id INTEGER PRIMARY KEY,
     body TEXT NOT NULL
 );
 
